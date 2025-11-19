@@ -1,3 +1,4 @@
+## Creating Self-Managed VM on GCP
 - First I logged into GCP and created a new vm instance called **assignment4-504**. 
     - Location: `us-central1-f` 
 - I created a firewall rule to allow access to port 22 and 3306. 
