@@ -12,6 +12,7 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 
+
 # --- 0) Load environment ---
 load_dotenv("assignment_4/.env")  # reads .env in current working directory
 
@@ -27,19 +28,57 @@ print("[ENV] MAN_DB_USER:", MAN_DB_USER)
 print("[ENV] MAN_DB_NAME:", MAN_DB_NAME)
 
 # --- 1) Connect to server (no DB) and ensure database exists ---
-server_url = f"mysql+pymysql://{MAN_DB_USER}:{MAN_DB_PASS}@{MAN_DB_HOST}:{MAN_DB_PORT}/{MAN_DB_NAME}"
+server_url = f"mysql+pymysql://{MAN_DB_USER}:{MAN_DB_PASS}@{MAN_DB_HOST}:{MAN_DB_PORT}"
 print("[STEP 1] Connecting to Managed MySQL (no DB):", server_url.replace(MAN_DB_PASS, "*****"))
 t0 = time.time()
 
-engine_server = create_engine(server_url, pool_pre_ping=True)
-with engine_server.connect() as conn:
-    conn.execute(text(f"CREATE DATABASE IF NOT EXISTS `{MAN_DB_NAME}`"))
-    conn.commit()
-print(f"[OK] Ensured database `{MAN_DB_NAME}` exists on managed instance.")
+# Quick sanity-check for required env vars
+required = {
+    "MAN_DB_HOST": MAN_DB_HOST,
+    "MAN_DB_USER": MAN_DB_USER,
+    "MAN_DB_PASS": MAN_DB_PASS,
+    "MAN_DB_NAME": MAN_DB_NAME,
+}
+missing = [k for k, v in required.items() if not v]
+if missing:
+    print("[ERROR] Missing required environment variables:", ", ".join(missing))
+    print("Please create or update assignment_4/.env with MAN_DB_HOST, MAN_DB_USER, MAN_DB_PASS, MAN_DB_NAME")
+    raise SystemExit(1)
+
+# Create engine and protect connection with helpful error messages on failure
+try:
+    engine_server = create_engine(
+        server_url,
+        pool_pre_ping=True,
+        connect_args={"ssl": {"ssl": True, "check_hostname": False, "ca": None}},
+    )
+    with engine_server.connect() as conn:
+        with open("sql/init.sql", "r") as f:
+            init_sql = f.read()
+        # Execute each SQL command
+        for command in init_sql.split(';'):
+            if command.strip():  # Skip empty commands
+                conn.execute(text(command))
+        conn.commit()
+        # conn.execute(text(f"CREATE DATABASE IF NOT EXISTS `{MAN_DB_NAME}`"))
+        # conn.execute(text(f"GRANT ALL PRIVILEGES ON '{MAN_DB_NAME}'.* TO '{MAN_DB_USER}'@'%' WITH GRANT OPTION;"))        
+        # conn.commit()
+    print(f"[OK] Ensured database `{MAN_DB_NAME}` exists on managed instance.")
+except Exception:
+    import traceback
+
+    print("[ERROR] Failed to connect to Managed MySQL server.")
+    # show masked URL to avoid leaking password
+    print("Masked server URL:", server_url.replace(MAN_DB_PASS, "*****"))
+    print("Common reasons: incorrect username/password, user not allowed from your client IP, network/firewall rules, or SSL mismatch.")
+    print("If this is a cloud managed DB, ensure the DB user is allowed to connect from your client IP (or '%' host), and that the password is correct.")
+    print("You can also try connecting with the mysql client or cloud console to verify credentials and allowed hosts.")
+    traceback.print_exc()
+    raise
 
 # --- 2) Connect to the target database ---
 db_url = f"mysql+pymysql://{MAN_DB_USER}:{MAN_DB_PASS}@{MAN_DB_HOST}:{MAN_DB_PORT}/{MAN_DB_NAME}"
-engine = create_engine(db_url, pool_pre_ping=True)
+engine = create_engine(db_url, connect_args={"ssl": {"ssl": True, "check_hostname": False, "ca": None}})
 
 # --- 3) Create a DataFrame and write to a table ---
 table_name = "visits"
