@@ -1,0 +1,8 @@
+### My Preference
+
+Based on my experience in this assignment, I preferred creating and managing the MySQL database on my own VM. Even though using the VM required reconnecting to SSH multiple times to run multple `sudo` commands (as happened during lecture), the setup was  easier to control and troubleshoot. I was able to install MySQL, create users, and create tables directly from the terminal. While the creation of the instance on the managed Cloud SQL instance was easy to make, it took several minutes (~5 minutes) to load and caused repeated user permission errors. Even after multiple attempts to grant privileges to my user (db504), I could only access the instance using the root account, which was frustrating and time consuming. 
+
+### Comparison
+Write approximately 200-400 words concluding which you’d choose in production for: (a) a small student app; (b) a departmental analytics DB; (c) a HIPAA-aligned workload (assume a BAA is available in your cloud).
+
+For a small student app I would use a vm that is managed by the student. For this assignment it was easy to create the vm, connect to mySQL, create users, grant privileges, and create our table. Therefore, I believe it'll be easy to manage a small student app on the vm. For a departmental analytics DB and HIPAA-aligned workload, I believe a managed MySQL service will be better to use as these can carry large amounts of data and have system and query insights which can help manage larger systems. Users don’t have to set up or maintain a managed database on their own. It is the provider's responsibility to oversee the database’s infrastructure and maintenance. This can help reduce operational overhead and allow users to spend more time on application development and schema design. 
