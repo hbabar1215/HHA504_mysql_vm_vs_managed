@@ -1,6 +1,6 @@
 # Summary of steps
 I used Google Cloud Platform (GCP) to provision two MySQL databases. 
-- Video Link: [Assignment 4 Recording]("https://drive.google.com/file/d/1XeEGKox9RbxQeHFgL5Ek90shCXiQ6tBb/view?usp=sharing")
+- Video Link: [Assignment 4 Recording](https://drive.google.com/file/d/1XeEGKox9RbxQeHFgL5Ek90shCXiQ6tBb/view?usp=sharing)
 ## GCP: Compute Engine
 ### Step 1: Create VM 
 - VM Name: `assignment4-504`
